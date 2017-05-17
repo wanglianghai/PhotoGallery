@@ -11,7 +11,7 @@ import android.support.v7.app.AppCompatActivity;
  */
 
 public abstract class SingleFragmentActivity extends AppCompatActivity {
-    abstract Fragment newInstance();
+    abstract protected Fragment newInstance();
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
