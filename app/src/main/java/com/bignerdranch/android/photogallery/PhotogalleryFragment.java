@@ -47,7 +47,7 @@ public class PhotoGalleryFragment extends Fragment {
 
         @Override
         protected Object doInBackground(Object[] params) {
-           new PhotoFetcher().fetcherItem();
+           new PhotoFetcher().fetchItem();
             
             return null;
         }
