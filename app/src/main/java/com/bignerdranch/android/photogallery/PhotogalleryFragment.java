@@ -11,6 +11,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import java.io.IOException;
@@ -25,7 +26,10 @@ public class PhotoGalleryFragment extends Fragment {
     private static final String TAG = "PhotoGalleryFragment";
 
     private RecyclerView mPhotoRecyclerView;
+    private ProgressBar mProgressBar;
+
     private List<PhotoItem> mPhotoItemList;
+    private FetcherItemTask mTask;
 
 
     public static PhotoGalleryFragment newInstance() {
@@ -36,7 +40,9 @@ public class PhotoGalleryFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mPhotoItemList = new ArrayList<>();
-        new FetcherItemTask().execute();
+        setRetainInstance(true);
+        mTask = new FetcherItemTask();
+        mTask.execute();
     }
 
     @Nullable
@@ -48,7 +54,18 @@ public class PhotoGalleryFragment extends Fragment {
         mPhotoRecyclerView.setLayoutManager(new GridLayoutManager(getActivity(), 3));
         setAdapter();
 
+        mProgressBar = (ProgressBar) view.findViewById(R.id.photo_progress_bar);
+        if (mPhotoItemList.size() > 0) {
+            mProgressBar.setVisibility(View.GONE);
+        }
+
         return view;
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        mTask.cancel(false);
     }
 
     private void setAdapter() {
@@ -57,7 +74,7 @@ public class PhotoGalleryFragment extends Fragment {
         }
     }
 
-    private class FetcherItemTask extends AsyncTask<Void, Void, List<PhotoItem>>{
+    private class FetcherItemTask extends AsyncTask<Void, Integer, List<PhotoItem>>{
 
         @Override
         protected List<PhotoItem> doInBackground(Void... params) {
@@ -65,8 +82,16 @@ public class PhotoGalleryFragment extends Fragment {
         }
 
         @Override
+        protected void onProgressUpdate(Integer... values) {
+            super.onProgressUpdate(values);
+            int progress = values[0];
+            mProgressBar.setProgress(progress);
+        }
+
+        @Override
         protected void onPostExecute(List<PhotoItem> list) {
             mPhotoItemList = list;
+            mProgressBar.setVisibility(View.GONE);
             setAdapter();
         }
     }

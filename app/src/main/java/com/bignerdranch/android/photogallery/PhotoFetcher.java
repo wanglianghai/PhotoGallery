@@ -42,7 +42,7 @@ public class PhotoFetcher {
 
         RequestBody body = new FormBody.Builder()
                 .add("start", "0")
-                .add("count", "250")
+                .add("count", "30")
                 .build();
 
         Request request = new Request.Builder()
