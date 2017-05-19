@@ -14,10 +14,17 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
+import javax.security.auth.login.LoginException;
+
+import okhttp3.FormBody;
+import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 import okhttp3.Response;
+import okio.BufferedSink;
 
 /**
  * Created by Administrator on 2017/5/17/017.
@@ -27,11 +34,22 @@ public class PhotoFetcher {
     private static final String TAG = "PhotoFetcher";
 
     public byte[] getUrlBytes(String urlSpec) throws IOException {
-        OkHttpClient client = new OkHttpClient();
-
-        Request request = new  Request.Builder()
-                .url(urlSpec)
+        OkHttpClient client = new OkHttpClient.Builder()
+                .connectTimeout(1, TimeUnit.MINUTES)
+                .readTimeout(1, TimeUnit.MINUTES)
+                .writeTimeout(1, TimeUnit.MINUTES)
                 .build();
+
+        RequestBody body = new FormBody.Builder()
+                .add("start", "0")
+                .add("count", "1")
+                .build();
+
+        Request request = new Request.Builder()
+                .url(urlSpec)
+                .post(body)
+                .build();
+
 
         Response response = client.newCall(request).execute();
         return response.body().bytes();
@@ -43,21 +61,21 @@ public class PhotoFetcher {
 
     public List<PhotoItem> fetchItem() {
         List<PhotoItem> items = new ArrayList<>();
-        String url = Uri.parse("https://api.douban.com//v2/movie/top250")
+       /* String url = Uri.parse("https://api.douban.com//v2/movie/top250")
                 .buildUpon()
                 .appendQueryParameter("start", "0")     //没这字段会无视
                 .appendQueryParameter("count", "250")
                 .build()
-                .toString();
+                .toString();*/
         try {
-            String json = getUrlString(url);
+            String json = getUrlString("https://api.douban.com//v2/movie/top250");
             parseItems(items, json);
             Log.i(TAG, "Received JSON: " +
                     json);
         } catch (IOException e) {
-            e.printStackTrace();
+            Log.e(TAG, "fetchItem: fail to fetch", e);
         } catch (JSONException e) {
-            e.printStackTrace();
+            Log.e(TAG, "fetchItem: JSON error", e);
         }
 
         return items;
