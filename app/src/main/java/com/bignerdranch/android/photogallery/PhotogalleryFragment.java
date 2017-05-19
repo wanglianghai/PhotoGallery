@@ -47,12 +47,7 @@ public class PhotoGalleryFragment extends Fragment {
 
         @Override
         protected Object doInBackground(Object[] params) {
-            try {
-                String result = new PhotoFetcher().getUrlString("https://www.baidu.com/");
-                Log.i(TAG, "doInBackground: " + result);
-            } catch (IOException e) {
-                Log.e(TAG, "doInBackground: Failed to fetcher url", e);
-            }
+           new PhotoFetcher().fetcherItem();
             
             return null;
         }
