@@ -33,26 +33,43 @@ import okio.BufferedSink;
 public class PhotoFetcher {
     private static final String TAG = "PhotoFetcher";
 
+    private Integer mPassed;
+
+    private ListenPreset mListenPreset;
+
+    public PhotoFetcher() {
+
+    }
+
+    public PhotoFetcher(PhotoGalleryFragment.FetcherItemTask task) {
+        mListenPreset = task;
+    }
+
+    public interface ListenPreset{
+        void setPreset(Integer integer);
+    }
+
     public byte[] getUrlBytes(String urlSpec) throws IOException {
-        OkHttpClient client = new OkHttpClient.Builder()
-                .connectTimeout(1, TimeUnit.MINUTES)
-                .readTimeout(1, TimeUnit.MINUTES)
-                .writeTimeout(1, TimeUnit.MINUTES)
-                .build();
+        Response response = null;
+           OkHttpClient client = new OkHttpClient.Builder()
+                   .connectTimeout(1, TimeUnit.MINUTES)
+                   .readTimeout(1, TimeUnit.MINUTES)
+                   .writeTimeout(1, TimeUnit.MINUTES)
+                   .build();
 
-        RequestBody body = new FormBody.Builder()
-                .add("start", "0")
-                .add("count", "30")
-                .build();
+           RequestBody body = new FormBody.Builder()
+                   .add("start", "0")
+                   .add("count", "250")
+                   .build();
 
-        Request request = new Request.Builder()
-                .url(urlSpec)
-                .post(body)
-                .build();
+           Request request = new Request.Builder()
+                   .url(urlSpec)
+                   .post(body)
+                   .build();
 
 
-        Response response = client.newCall(request).execute();
-        return response.body().bytes();
+           response = client.newCall(request).execute();
+           return response.body().bytes();
     }
 
     public String getUrlString(String urlSpec) throws IOException {
@@ -85,7 +102,8 @@ public class PhotoFetcher {
         JSONObject jsonObject = new JSONObject(json);
         JSONArray jsonArray = jsonObject.getJSONArray("subjects");
 
-        for (int i = 0; i < jsonArray.length(); i++) {
+        int length = jsonArray.length();
+        for (int i = 0; i < length; i++) {
             JSONObject itemObject = jsonArray.getJSONObject(i);
 
             PhotoItem item = new PhotoItem();
@@ -94,6 +112,8 @@ public class PhotoFetcher {
             item.setTitle(itemObject.getString("title"));
 
             list.add(item);
+            mListenPreset.setPreset(i * 100 / length);
         }
     }
+
 }

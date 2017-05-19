@@ -31,7 +31,6 @@ public class PhotoGalleryFragment extends Fragment {
     private List<PhotoItem> mPhotoItemList;
     private FetcherItemTask mTask;
 
-
     public static PhotoGalleryFragment newInstance() {
         return new PhotoGalleryFragment();
     }
@@ -74,17 +73,19 @@ public class PhotoGalleryFragment extends Fragment {
         }
     }
 
-    private class FetcherItemTask extends AsyncTask<Void, Integer, List<PhotoItem>>{
+    public class FetcherItemTask extends AsyncTask<Void, Integer, List<PhotoItem>> implements PhotoFetcher.ListenPreset{
 
         @Override
         protected List<PhotoItem> doInBackground(Void... params) {
-            return new PhotoFetcher().fetchItem();
+
+            return new PhotoFetcher(mTask).fetchItem();
         }
 
         @Override
         protected void onProgressUpdate(Integer... values) {
             super.onProgressUpdate(values);
             int progress = values[0];
+            Log.i(TAG, "onProgressUpdate: " + progress);
             mProgressBar.setProgress(progress);
         }
 
@@ -93,6 +94,11 @@ public class PhotoGalleryFragment extends Fragment {
             mPhotoItemList = list;
             mProgressBar.setVisibility(View.GONE);
             setAdapter();
+        }
+
+        @Override
+        public void setPreset(Integer integer) {
+            publishProgress(integer);
         }
     }
 
