@@ -51,29 +51,29 @@ public class PhotoFetcher {
 
     public byte[] getUrlBytes(String urlSpec) throws IOException {
         Response response = null;
-        try {
-            OkHttpClient client = new OkHttpClient.Builder()
-                    .connectTimeout(1, TimeUnit.MINUTES)
-                    .readTimeout(1, TimeUnit.MINUTES)
-                    .writeTimeout(1, TimeUnit.MINUTES)
-                    .build();
+           try {
+               OkHttpClient client = new OkHttpClient.Builder()
+                       .connectTimeout(1, TimeUnit.MINUTES)
+                       .readTimeout(1, TimeUnit.MINUTES)
+                       .writeTimeout(1, TimeUnit.MINUTES)
+                       .build();
 
-            RequestBody body = new FormBody.Builder()
-                    .add("start", "0")
-                    .add("count", "30")
-                    .build();
+               RequestBody body = new FormBody.Builder()
+                       .add("start", "0")
+                       .add("count", "30")
+                       .build();
 
-            Request request = new Request.Builder()
-                    .url(urlSpec)
-                    .post(body)
-                    .build();
+               Request request = new Request.Builder()
+                       .url(urlSpec)
+                       .post(body)
+                       .build();
 
 
-            response = client.newCall(request).execute();
-            return response.body().bytes();
-        } finally {
-            response.close();
-        }
+               response = client.newCall(request).execute();
+               return response.body().bytes();
+           } finally {
+               response.body().close();
+           }
     }
 
     public String getUrlString(String urlSpec) throws IOException {

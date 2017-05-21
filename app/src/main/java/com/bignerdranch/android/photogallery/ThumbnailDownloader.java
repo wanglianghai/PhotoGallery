@@ -75,15 +75,34 @@ public class ThumbnailDownloader<T> extends HandlerThread {
         }
     }
 
-    private void handlerRequest(T target) {
-        String url = mRequestMap.get(target);
+    private void handlerRequest(final T target) {
+        final String url = mRequestMap.get(target);
         
         try {
             byte[] bitImg = new PhotoFetcher().getUrlBytes(url);
-            Bitmap bitmap = BitmapFactory.decodeByteArray(bitImg, 0, bitImg.length);
+            final Bitmap bitmap = BitmapFactory.decodeByteArray(bitImg, 0, bitImg.length);
             Log.i(TAG, "handlerRequest: bitmap create");
+
+            mResponseHandler.post(new Runnable() {
+                /*   Because mResponseHandler is associated with the main thread’s
+                        Looper, all of the code inside of run() will be executed on the main thread.*/
+                @Override
+                public void run() {
+/* By the time ThumbnailDownloader finishes downloading the Bitmap,
+        RecyclerView may have recycled the PhotoHolder and requested a
+        different URL for it*/
+                    if (url != mRequestMap.get(target) || mHasQuit) {
+                        return;
+                    }
+                    mThumbnailDownloadListener.onThumbnailDownloaded(target, bitmap);
+                }
+            });
         } catch (IOException e) {
             Log.e(TAG, "handlerRequest: Error download image", e);
         }
+    }
+
+    public void clearQueue() {
+        mRequestHandler.removeMessages(MESSAGE_DOWNLOAD);
     }
 }
