@@ -21,12 +21,24 @@ public class ThumbnailDownloader<T> extends HandlerThread {
     private static final int MESSAGE_DOWNLOAD = 1;
 
     private Handler mRequestHandler;
-    private ConcurrentMap<T, String> mRequestMap;
+    private Handler mResponseHandler;
+    private ThumbnailDownloadListener<T> mThumbnailDownloadListener;
 
+    private ConcurrentMap<T, String> mRequestMap;
     private boolean mHasQuit = false;
-    public ThumbnailDownloader() {
+
+    public interface ThumbnailDownloadListener<T> {
+        void onThumbnailDownloaded(T target, Bitmap thumbnail);
+    }
+
+    public void setThumbnailDownloadListener(ThumbnailDownloadListener<T> thumbnailDownloadListener) {
+        mThumbnailDownloadListener = thumbnailDownloadListener;
+    }
+
+    public ThumbnailDownloader(Handler responseHandler) {
         super(TAG);
         mRequestMap = new ConcurrentHashMap<>();
+        mResponseHandler = responseHandler;
     }
 
     @Override
