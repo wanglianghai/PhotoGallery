@@ -1,8 +1,11 @@
 package com.bignerdranch.android.photogallery;
 
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
@@ -41,10 +44,18 @@ public class PhotoGalleryFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mPhotoItemList = new ArrayList<>();
+        Handler responseHandler = new Handler();
         setRetainInstance(true);
         mTask = new FetcherItemTask();
         mTask.execute();
-        mThumbnailDownloader = new ThumbnailDownloader<>();
+        mThumbnailDownloader = new ThumbnailDownloader<>(responseHandler);
+        mThumbnailDownloader.setThumbnailDownloadListener(new ThumbnailDownloader.ThumbnailDownloadListener<PhotoHolder>() {
+            @Override
+            public void onThumbnailDownloaded(PhotoHolder target, Bitmap thumbnail) {
+                Drawable drawable = new BitmapDrawable(getResources(), thumbnail);
+                target.bindDrawable(drawable);
+            }
+        });
         mThumbnailDownloader.start();
         mThumbnailDownloader.getLooper();
         Log.i(TAG, "onCreate: thumbnail start");
@@ -71,8 +82,8 @@ public class PhotoGalleryFragment extends Fragment {
     public void onStop() {
         super.onStop();
         mTask.cancel(false);
-        mThumbnailDownloader.quit();
-        Log.i(TAG, "onDestroy: thumbnail quit");
+        mThumbnailDownloader.clearQueue();
+        Log.i(TAG, "onDestroy: thumbnail clear");
     }
 
     private void setAdapter() {
@@ -146,6 +157,7 @@ public class PhotoGalleryFragment extends Fragment {
         @Override
         public void onBindViewHolder(PhotoHolder holder, int position) {
             holder.bindItem(mPhotoItem.get(position));
+            holder.bindDrawable(getResources().getDrawable(R.drawable.ic_action_wait));
             mThumbnailDownloader.queueThumbnail(holder, mPhotoItem.get(position).getImgUrl());
         }
 
