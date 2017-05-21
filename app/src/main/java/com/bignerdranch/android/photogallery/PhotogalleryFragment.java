@@ -1,5 +1,6 @@
 package com.bignerdranch.android.photogallery;
 
+import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -30,6 +31,7 @@ public class PhotoGalleryFragment extends Fragment {
 
     private List<PhotoItem> mPhotoItemList;
     private FetcherItemTask mTask;
+    private ThumbnailDownloader<PhotoHolder> mThumbnailDownloader;
 
     public static PhotoGalleryFragment newInstance() {
         return new PhotoGalleryFragment();
@@ -42,6 +44,10 @@ public class PhotoGalleryFragment extends Fragment {
         setRetainInstance(true);
         mTask = new FetcherItemTask();
         mTask.execute();
+        mThumbnailDownloader = new ThumbnailDownloader<>();
+        mThumbnailDownloader.start();
+        mThumbnailDownloader.getLooper();
+        Log.i(TAG, "onCreate: thumbnail start");
     }
 
     @Nullable
@@ -65,6 +71,8 @@ public class PhotoGalleryFragment extends Fragment {
     public void onStop() {
         super.onStop();
         mTask.cancel(false);
+        mThumbnailDownloader.quit();
+        Log.i(TAG, "onDestroy: thumbnail quit");
     }
 
     private void setAdapter() {
@@ -116,6 +124,10 @@ public class PhotoGalleryFragment extends Fragment {
         public void bindItem(PhotoItem item) {
             mTextView.setText(item.getTitle());
         }
+
+        public void bindDrawable(Drawable drawable) {
+            mImageView.setImageDrawable(drawable);
+        }
     }
 
     private class PhotoAdapter extends RecyclerView.Adapter<PhotoHolder> {
@@ -134,6 +146,7 @@ public class PhotoGalleryFragment extends Fragment {
         @Override
         public void onBindViewHolder(PhotoHolder holder, int position) {
             holder.bindItem(mPhotoItem.get(position));
+            mThumbnailDownloader.queueThumbnail(holder, mPhotoItem.get(position).getImgUrl());
         }
 
         @Override
