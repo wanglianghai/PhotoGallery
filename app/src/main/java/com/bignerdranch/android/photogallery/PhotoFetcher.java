@@ -33,8 +33,6 @@ import okio.BufferedSink;
 public class PhotoFetcher {
     private static final String TAG = "PhotoFetcher";
 
-    private Integer mPassed;
-
     private ListenPreset mListenPreset;
 
     public PhotoFetcher() {
