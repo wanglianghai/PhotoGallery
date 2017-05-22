@@ -19,6 +19,8 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.squareup.picasso.Picasso;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,7 +50,7 @@ public class PhotoGalleryFragment extends Fragment {
         setRetainInstance(true);
         mTask = new FetcherItemTask();
         mTask.execute();
-        mThumbnailDownloader = new ThumbnailDownloader<>();
+      /*  mThumbnailDownloader = new ThumbnailDownloader<>();
         mThumbnailDownloader.setThumbnailDownloadListener(new ThumbnailDownloader.ThumbnailDownloadListener<PhotoHolder>() {
             @Override
             public void onThumbnailDownloaded(PhotoHolder target, Bitmap thumbnail) {
@@ -58,7 +60,7 @@ public class PhotoGalleryFragment extends Fragment {
         });
         mThumbnailDownloader.start();
         mThumbnailDownloader.getLooper();
-        Log.i(TAG, "onCreate: thumbnail start");
+        Log.i(TAG, "onCreate: thumbnail start");*/
     }
 
     @Nullable
@@ -92,6 +94,7 @@ public class PhotoGalleryFragment extends Fragment {
         }
     }
 
+//It is intended for work that is short-lived and not repeated too often
     public class FetcherItemTask extends AsyncTask<Void, Integer, List<PhotoItem>> implements PhotoFetcher.ListenPreset{
 
         @Override
@@ -133,12 +136,10 @@ public class PhotoGalleryFragment extends Fragment {
         }
 
         public void bindItem(PhotoItem item) {
+            Picasso.with(getActivity()).load(item.getImgUrl()).into(mImageView);
             mTextView.setText(item.getTitle());
         }
 
-        public void bindDrawable(Drawable drawable) {
-            mImageView.setImageDrawable(drawable);
-        }
     }
 
     private class PhotoAdapter extends RecyclerView.Adapter<PhotoHolder> {
@@ -157,8 +158,8 @@ public class PhotoGalleryFragment extends Fragment {
         @Override
         public void onBindViewHolder(PhotoHolder holder, int position) {
             holder.bindItem(mPhotoItem.get(position));
-            holder.bindDrawable(getResources().getDrawable(R.drawable.ic_action_wait));
-            mThumbnailDownloader.queueThumbnail(holder, mPhotoItem.get(position).getImgUrl());
+   //         holder.bindDrawable(getResources().getDrawable(R.drawable.ic_action_wait));
+  //          mThumbnailDownloader.queueThumbnail(holder, mPhotoItem.get(position).getImgUrl());
         }
 
         @Override
