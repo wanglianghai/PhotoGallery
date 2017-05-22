@@ -19,10 +19,13 @@ import java.util.concurrent.ConcurrentMap;
 public class ThumbnailDownloader<T> extends HandlerThread {
     private static final String TAG = "ThumbnailDownloader";
     private static final int MESSAGE_DOWNLOAD = 1;
+    private static final int MESSAGE_DOWNLOADED = 2;
 
     private Handler mRequestHandler;
     private Handler mResponseHandler;
     private ThumbnailDownloadListener<T> mThumbnailDownloadListener;
+    private String url;
+    private Bitmap bitmap;
 
     private ConcurrentMap<T, String> mRequestMap;
     private boolean mHasQuit = false;
@@ -35,10 +38,20 @@ public class ThumbnailDownloader<T> extends HandlerThread {
         mThumbnailDownloadListener = thumbnailDownloadListener;
     }
 
-    public ThumbnailDownloader(Handler responseHandler) {
+    public ThumbnailDownloader() {
         super(TAG);
         mRequestMap = new ConcurrentHashMap<>();
-        mResponseHandler = responseHandler;
+        mResponseHandler = new Handler() {
+            @Override
+            public void handleMessage(Message msg) {
+                super.handleMessage(msg);
+                if (msg.what == MESSAGE_DOWNLOADED) {
+                    T target = (T) msg.getTarget();
+                    Log.i(TAG, "handleMessage: downloaded " + mRequestMap.get(target));
+                    handlerResponse(target);
+                }
+            }
+        };
     }
 
     @Override
@@ -50,7 +63,7 @@ public class ThumbnailDownloader<T> extends HandlerThread {
                 super.handleMessage(msg);
                 if (msg.what == MESSAGE_DOWNLOAD) {
                     T target = (T) msg.obj;
-                    Log.i(TAG, "handleMessage: getUrl" + mRequestMap.get(target));
+                    Log.i(TAG, "handleMessage: getUrl " + mRequestMap.get(target));
                     handlerRequest(target);
                 }
             }
@@ -76,30 +89,40 @@ public class ThumbnailDownloader<T> extends HandlerThread {
     }
 
     private void handlerRequest(final T target) {
-        final String url = mRequestMap.get(target);
+        url = mRequestMap.get(target);
         
         try {
             byte[] bitImg = new PhotoFetcher().getUrlBytes(url);
-            final Bitmap bitmap = BitmapFactory.decodeByteArray(bitImg, 0, bitImg.length);
+            bitmap = BitmapFactory.decodeByteArray(bitImg, 0, bitImg.length);
             Log.i(TAG, "handlerRequest: bitmap create");
 
-            mResponseHandler.post(new Runnable() {
-                /*   Because mResponseHandler is associated with the main thread’s
-                        Looper, all of the code inside of run() will be executed on the main thread.*/
+            mResponseHandler.obtainMessage(MESSAGE_DOWNLOADED, target)
+                    .sendToTarget();
+
+  /*          mResponseHandler.post(new Runnable() {//在自己的线程
+     //              Because mResponseHandler is associated with the main thread’s
+    //                    Looper, all of the code inside of run() will be executed on the main thread.
                 @Override
                 public void run() {
-/* By the time ThumbnailDownloader finishes downloading the Bitmap,
-        RecyclerView may have recycled the PhotoHolder and requested a
-        different URL for it*/
+// By the time ThumbnailDownloader finishes downloading the Bitmap,
+ //       RecyclerView may have recycled the PhotoHolder and requested a
+ //       different URL for it
                     if (url != mRequestMap.get(target) || mHasQuit) {
                         return;
                     }
                     mThumbnailDownloadListener.onThumbnailDownloaded(target, bitmap);
                 }
-            });
+            });*/
         } catch (IOException e) {
             Log.e(TAG, "handlerRequest: Error download image", e);
         }
+    }
+
+    private void handlerResponse(T target) {
+        if (url != mRequestMap.get(target) || mHasQuit) {
+            return;
+        }
+        mThumbnailDownloadListener.onThumbnailDownloaded(target, bitmap);
     }
 
     public void clearQueue() {

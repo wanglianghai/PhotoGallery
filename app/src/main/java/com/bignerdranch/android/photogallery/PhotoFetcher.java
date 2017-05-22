@@ -7,6 +7,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -48,30 +51,50 @@ public class PhotoFetcher {
     }
 
     public byte[] getUrlBytes(String urlSpec) throws IOException {
-        Response response = null;
-           try {
-               OkHttpClient client = new OkHttpClient.Builder()
-                       .connectTimeout(1, TimeUnit.MINUTES)
-                       .readTimeout(1, TimeUnit.MINUTES)
-                       .writeTimeout(1, TimeUnit.MINUTES)
-                       .build();
+        URL url = new URL(urlSpec);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        try {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            InputStream in = connection.getInputStream();
 
-               RequestBody body = new FormBody.Builder()
-                       .add("start", "0")
-                       .add("count", "30")
-                       .build();
+            if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
+                throw new IOException(connection.getResponseMessage() + ": with " + urlSpec);
+            }
 
-               Request request = new Request.Builder()
-                       .url(urlSpec)
-                       .post(body)
-                       .build();
+            int byteReader;
+            byte[] buffer = new byte[1024];
+            while ((byteReader = in.read(buffer)) > 0) {
+                out.write(buffer, 0, byteReader);
+            }
+
+            return out.toByteArray();
+        } finally {
+            connection.disconnect();
+        }
+        /*Response response = null;
+        try {
+            OkHttpClient client = new OkHttpClient.Builder()
+                    .connectTimeout(1, TimeUnit.MINUTES)
+                    .readTimeout(1, TimeUnit.MINUTES)
+                    .writeTimeout(1, TimeUnit.MINUTES)
+                    .build();
+
+            RequestBody body = new FormBody.Builder()
+                    .add("start", "0")
+                    .add("count", "30")
+                    .build();
+
+            Request request = new Request.Builder()
+                    .url(urlSpec)
+                    .post(body)
+                    .build();
 
 
-               response = client.newCall(request).execute();
-               return response.body().bytes();
-           } finally {
-               response.body().close();
-           }
+            response = client.newCall(request).execute();
+            return response.body().bytes();
+        } finally {
+            response.body().close();
+        }*/
     }
 
     public String getUrlString(String urlSpec) throws IOException {
@@ -80,14 +103,14 @@ public class PhotoFetcher {
 
     public List<PhotoItem> fetchItem() {
         List<PhotoItem> items = new ArrayList<>();
-       /* String url = Uri.parse("https://api.douban.com//v2/movie/top250")
+        String url = Uri.parse("https://api.douban.com//v2/movie/top250")
                 .buildUpon()
                 .appendQueryParameter("start", "0")     //没这字段会无视
-                .appendQueryParameter("count", "250")
+                .appendQueryParameter("count", "30")
                 .build()
-                .toString();*/
+                .toString();
         try {
-            String json = getUrlString("https://api.douban.com//v2/movie/top250");
+            String json = getUrlString(url);
             parseItems(items, json);
             Log.i(TAG, "Received JSON: " +
                     json);
