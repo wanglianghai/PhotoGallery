@@ -73,7 +73,7 @@ public class PhotoFetcher {
         }
         /*Response response = null;
         try {
-            OkHttpClient client = new OkHttpClient.Builder()
+            OkHttpClient client = new OkHttpClient.Builder()  只能有一个在一个application中
                     .connectTimeout(1, TimeUnit.MINUTES)
                     .readTimeout(1, TimeUnit.MINUTES)
                     .writeTimeout(1, TimeUnit.MINUTES)

@@ -24,8 +24,6 @@ public class ThumbnailDownloader<T> extends HandlerThread {
     private Handler mRequestHandler;
     private Handler mResponseHandler;
     private ThumbnailDownloadListener<T> mThumbnailDownloadListener;
-    private String url;
-    private Bitmap bitmap;
 
     private ConcurrentMap<T, String> mRequestMap;
     private boolean mHasQuit = false;
@@ -41,17 +39,18 @@ public class ThumbnailDownloader<T> extends HandlerThread {
     public ThumbnailDownloader() {
         super(TAG);
         mRequestMap = new ConcurrentHashMap<>();
-        mResponseHandler = new Handler() {
+        mResponseHandler = new Handler();
+       /* mResponseHandler = new Handler() {
             @Override
             public void handleMessage(Message msg) {
                 super.handleMessage(msg);
                 if (msg.what == MESSAGE_DOWNLOADED) {
-                    T target = (T) msg.getTarget();
-                    Log.i(TAG, "handleMessage: downloaded " + mRequestMap.get(target));
+                    T target = (T) msg.obj;
+                    Log.i(TAG, "handleMessage: downloaded " + mRequestMap.get(target) + target.toString());
                     handlerResponse(target);
                 }
             }
-        };
+        };*/
     }
 
     @Override
@@ -63,7 +62,7 @@ public class ThumbnailDownloader<T> extends HandlerThread {
                 super.handleMessage(msg);
                 if (msg.what == MESSAGE_DOWNLOAD) {
                     T target = (T) msg.obj;
-                    Log.i(TAG, "handleMessage: getUrl " + mRequestMap.get(target));
+                    Log.i(TAG, "handleMessage: getUrl " + mRequestMap.get(target) + target.toString());
                     handlerRequest(target);
                 }
             }
@@ -89,17 +88,17 @@ public class ThumbnailDownloader<T> extends HandlerThread {
     }
 
     private void handlerRequest(final T target) {
-        url = mRequestMap.get(target);
+        final String url = mRequestMap.get(target);
         
         try {
             byte[] bitImg = new PhotoFetcher().getUrlBytes(url);
-            bitmap = BitmapFactory.decodeByteArray(bitImg, 0, bitImg.length);
-            Log.i(TAG, "handlerRequest: bitmap create");
+            final Bitmap bitmap = BitmapFactory.decodeByteArray(bitImg, 0, bitImg.length);
+            Log.i(TAG, "handlerRequest: bitmap create " + target.toString());
 
-            mResponseHandler.obtainMessage(MESSAGE_DOWNLOADED, target)
-                    .sendToTarget();
+   ////         mResponseHandler.obtainMessage(MESSAGE_DOWNLOADED, target)
+     //               .sendToTarget();
 
-  /*          mResponseHandler.post(new Runnable() {//在自己的线程
+            mResponseHandler.post(new Runnable() {//在自己的线程
      //              Because mResponseHandler is associated with the main thread’s
     //                    Looper, all of the code inside of run() will be executed on the main thread.
                 @Override
@@ -108,22 +107,23 @@ public class ThumbnailDownloader<T> extends HandlerThread {
  //       RecyclerView may have recycled the PhotoHolder and requested a
  //       different URL for it
                     if (url != mRequestMap.get(target) || mHasQuit) {
+                        Log.i(TAG, "return handlerRequest: bitmap create " + target.toString());
                         return;
                     }
                     mThumbnailDownloadListener.onThumbnailDownloaded(target, bitmap);
                 }
-            });*/
+            });
         } catch (IOException e) {
             Log.e(TAG, "handlerRequest: Error download image", e);
         }
     }
 
-    private void handlerResponse(T target) {
+    /*private void handlerResponse(T target) {
         if (url != mRequestMap.get(target) || mHasQuit) {
             return;
         }
         mThumbnailDownloadListener.onThumbnailDownloaded(target, bitmap);
-    }
+    }*/
 
     public void clearQueue() {
         mRequestHandler.removeMessages(MESSAGE_DOWNLOAD);
