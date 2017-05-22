@@ -8,6 +8,15 @@ public class PhotoItem {
     private String mId;
     private String mTitle;
     private String mImgUrl;
+    private int mPosition;
+
+    public int getPosition() {
+        return mPosition;
+    }
+
+    public void setPosition(int position) {
+        mPosition = position;
+    }
 
     public String getId() {
         return mId;

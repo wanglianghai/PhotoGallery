@@ -106,7 +106,7 @@ public class PhotoFetcher {
         String url = Uri.parse("https://api.douban.com//v2/movie/top250")
                 .buildUpon()
                 .appendQueryParameter("start", "0")     //没这字段会无视
-                .appendQueryParameter("count", "30")
+                .appendQueryParameter("count", "250")
                 .build()
                 .toString();
         try {
@@ -136,7 +136,7 @@ public class PhotoFetcher {
             item.setImgUrl(itemObject.getJSONObject("images").getString("medium"));
             item.setTitle(itemObject.getString("title"));
 
-            list.add(item);
+            list.add(i, item);
             mListenPreset.setPreset(i * 100 / length);
         }
     }

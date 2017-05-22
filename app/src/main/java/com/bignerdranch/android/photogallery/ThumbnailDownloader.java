@@ -6,6 +6,7 @@ import android.graphics.BitmapFactory;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
+import android.support.v4.util.LruCache;
 import android.util.Log;
 
 import java.io.IOException;
@@ -19,10 +20,11 @@ import java.util.concurrent.ConcurrentMap;
 public class ThumbnailDownloader<T> extends HandlerThread {
     private static final String TAG = "ThumbnailDownloader";
     private static final int MESSAGE_DOWNLOAD = 1;
-    private static final int MESSAGE_DOWNLOADED = 2;
+    private static final int MESSAGE_PRE_DOWNLOAD = 2;
 
     private Handler mRequestHandler;
     private Handler mResponseHandler;
+    private LruCache<String, Bitmap> mLruCache;
     private ThumbnailDownloadListener<T> mThumbnailDownloadListener;
 
     private ConcurrentMap<T, String> mRequestMap;
@@ -39,6 +41,12 @@ public class ThumbnailDownloader<T> extends HandlerThread {
     public ThumbnailDownloader() {
         super(TAG);
         mRequestMap = new ConcurrentHashMap<>();
+        int cacheSize = 4 * 1024 * 1024; // 4MiB
+        mLruCache = new LruCache<String, Bitmap>(cacheSize) {
+            protected int sizeOf(String key, Bitmap value) {
+                return value.getByteCount();
+            }
+        };
         mResponseHandler = new Handler();
        /* mResponseHandler = new Handler() {
             @Override
@@ -65,6 +73,11 @@ public class ThumbnailDownloader<T> extends HandlerThread {
                     Log.i(TAG, "handleMessage: getUrl " + mRequestMap.get(target) + target.toString());
                     handlerRequest(target);
                 }
+
+                if (msg.what == MESSAGE_PRE_DOWNLOAD) {
+                    T target = (T) msg.obj;
+                    handlerPre(target);
+                }
             }
         };
     }
@@ -87,12 +100,26 @@ public class ThumbnailDownloader<T> extends HandlerThread {
         }
     }
 
+    public void queuePreThumbnail(String url) {
+        Log.i(TAG, "get a url: " + url);
+        mRequestHandler.obtainMessage(MESSAGE_PRE_DOWNLOAD, url)
+                .sendToTarget();
+    }
+
+    private void handlerPre(final T target) {
+        try {
+            cacheLru((String) target);
+            Log.i(TAG, "handlerPre: ");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     private void handlerRequest(final T target) {
         final String url = mRequestMap.get(target);
         
         try {
-            byte[] bitImg = new PhotoFetcher().getUrlBytes(url);
-            final Bitmap bitmap = BitmapFactory.decodeByteArray(bitImg, 0, bitImg.length);
+            final Bitmap bitmap = cacheLru(url);
             Log.i(TAG, "handlerRequest: bitmap create " + target.toString());
 
    ////         mResponseHandler.obtainMessage(MESSAGE_DOWNLOADED, target)
@@ -116,6 +143,18 @@ public class ThumbnailDownloader<T> extends HandlerThread {
         } catch (IOException e) {
             Log.e(TAG, "handlerRequest: Error download image", e);
         }
+    }
+
+    private Bitmap cacheLru(String url) throws IOException {
+        final Bitmap bitmap;
+        if (mLruCache.get(url) == null) {
+            byte[] bitImg = new PhotoFetcher().getUrlBytes(url);
+            bitmap = BitmapFactory.decodeByteArray(bitImg, 0, bitImg.length);
+            mLruCache.put(url, bitmap);
+        } else {
+            bitmap = mLruCache.get(url);
+        }
+        return bitmap;
     }
 
     /*private void handlerResponse(T target) {

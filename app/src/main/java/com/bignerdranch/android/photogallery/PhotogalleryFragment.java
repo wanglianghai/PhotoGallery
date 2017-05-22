@@ -89,6 +89,34 @@ public class PhotoGalleryFragment extends Fragment {
     private void setAdapter() {
         if (isAdded()) {
             mPhotoRecyclerView.setAdapter(new PhotoAdapter(mPhotoItemList));
+            mPhotoRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+                @Override
+                public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+                    super.onScrollStateChanged(recyclerView, newState);
+                    switch (newState) {
+                        case RecyclerView.SCROLL_STATE_DRAGGING:
+                            mThumbnailDownloader.clearQueue();
+                            break;
+                        case RecyclerView.SCROLL_STATE_IDLE:
+                            GridLayoutManager gridLayoutManager =
+                                    (GridLayoutManager) mPhotoRecyclerView.getLayoutManager();
+                            PhotoAdapter photoAdapter = (PhotoAdapter) mPhotoRecyclerView.getAdapter();
+                            int startingPos = gridLayoutManager.findLastVisibleItemPosition() + 1;
+                            int upperLimit = Math.min(startingPos + 10, photoAdapter.getItemCount());
+                            for (int i = startingPos; i < upperLimit; i++) {
+                                mThumbnailDownloader.queuePreThumbnail(mPhotoItemList.get(i).getImgUrl());
+                            }
+
+                            startingPos = gridLayoutManager.findFirstVisibleItemPosition() - 1;
+                            int lowerLimit = Math.max(startingPos - 10, 0);
+                            for (int i = startingPos; i > lowerLimit; i--) {
+                                mThumbnailDownloader.queuePreThumbnail(mPhotoItemList.get(i).getImgUrl());
+                            }
+
+                            break;
+                    }
+                }
+            });
         }
     }
 
@@ -165,5 +193,6 @@ public class PhotoGalleryFragment extends Fragment {
         public int getItemCount() {
             return mPhotoItem.size();
         }
+
     }
 }
