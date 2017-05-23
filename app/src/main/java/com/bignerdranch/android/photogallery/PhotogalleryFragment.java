@@ -21,6 +21,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -40,6 +41,7 @@ public class PhotoGalleryFragment extends Fragment {
 
     private RecyclerView mPhotoRecyclerView;
     private ProgressBar mProgressBar;
+    private SearchView mSearchView;
 
     private List<PhotoItem> mPhotoItemList;
     private FetcherItemTask mTask;
@@ -55,12 +57,13 @@ public class PhotoGalleryFragment extends Fragment {
         inflater.inflate(R.menu.fragment_photo_tool_bar, menu);
 
         MenuItem searchItem = menu.findItem(R.id.menu_item_search);
-        SearchView searchView = (SearchView) searchItem.getActionView();
-        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+        mSearchView = (SearchView) searchItem.getActionView();
+        mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
                 Log.d(TAG, "onQueryTextSubmit: " + query);
                 QueryPreference.setPreference(getActivity(), query);
+                collapseAfterSearch();
                 updateItem();
                 return true;
             }
@@ -76,6 +79,7 @@ public class PhotoGalleryFragment extends Fragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_item_clear:
+                mSearchView.setQuery("", false);
                 QueryPreference.setPreference(getActivity(), null);
                 updateItem();
                 return true;
@@ -85,6 +89,8 @@ public class PhotoGalleryFragment extends Fragment {
     }
 
     private void updateItem() {
+        mProgressBar.setVisibility(View.VISIBLE);
+        mPhotoRecyclerView.setVisibility(View.GONE);
         new FetcherItemTask(QueryPreference.getPreference(getActivity())).execute();
     }
 
@@ -195,6 +201,7 @@ public class PhotoGalleryFragment extends Fragment {
         protected void onPostExecute(List<PhotoItem> list) {
             mPhotoItemList = list;
             mProgressBar.setVisibility(View.GONE);
+            mPhotoRecyclerView.setVisibility(View.VISIBLE);
             setAdapter();
         }
 
@@ -216,7 +223,10 @@ public class PhotoGalleryFragment extends Fragment {
         }
 
         public void bindItem(PhotoItem item) {
-            Picasso.with(getActivity()).load(item.getImgUrl()).into(mImageView);
+            Picasso.with(getActivity()).
+                    load(item.getImgUrl()).
+                    placeholder(R.drawable.ic_action_wait).
+                    into(mImageView);
             mTextView.setText(item.getTitle());
         }
 
@@ -252,5 +262,24 @@ public class PhotoGalleryFragment extends Fragment {
             return mPhotoItem.size();
         }
 
+    }
+
+    /*private void collapseSearch() {
+        mSearchView.onActionViewCollapsed();
+        View view = getActivity().getCurrentFocus();  // hide the soft keyboard
+        if (view != null) {
+            InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+        }
+    }*/
+
+    private void collapseAfterSearch() {
+        mSearchView.onActionViewCollapsed();
+        View view = getActivity().getCurrentFocus();
+
+        if (view != null) {
+            InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+        }
     }
 }
