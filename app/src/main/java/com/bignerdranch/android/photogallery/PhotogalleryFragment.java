@@ -50,7 +50,7 @@ public class PhotoGalleryFragment extends Fragment {
         setRetainInstance(true);
         mTask = new FetcherItemTask();
         mTask.execute();
-      /*  mThumbnailDownloader = new ThumbnailDownloader<>();
+       /* mThumbnailDownloader = new ThumbnailDownloader<>();
         mThumbnailDownloader.setThumbnailDownloadListener(new ThumbnailDownloader.ThumbnailDownloadListener<PhotoHolder>() {
             @Override
             public void onThumbnailDownloaded(PhotoHolder target, Bitmap thumbnail) {
@@ -59,8 +59,8 @@ public class PhotoGalleryFragment extends Fragment {
             }
         });
         mThumbnailDownloader.start();
-        mThumbnailDownloader.getLooper();
-        Log.i(TAG, "onCreate: thumbnail start");*/
+        mThumbnailDownloader.getLooper();*/
+        Log.i(TAG, "onCreate: thumbnail start");
     }
 
     @Nullable
@@ -84,14 +84,14 @@ public class PhotoGalleryFragment extends Fragment {
     public void onStop() {
         super.onStop();
         mTask.cancel(false);
-        mThumbnailDownloader.clearQueue();
+//        mThumbnailDownloader.clearQueue();
         Log.i(TAG, "onDestroy: thumbnail clear");
     }
 
     private void setAdapter() {
         if (isAdded()) {
             mPhotoRecyclerView.setAdapter(new PhotoAdapter(mPhotoItemList));
-            mPhotoRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            /*mPhotoRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
                 @Override
                 public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
                     super.onScrollStateChanged(recyclerView, newState);
@@ -118,7 +118,7 @@ public class PhotoGalleryFragment extends Fragment {
                             break;
                     }
                 }
-            });
+            });*/
         }
     }
 
@@ -168,6 +168,10 @@ public class PhotoGalleryFragment extends Fragment {
             mTextView.setText(item.getTitle());
         }
 
+        public void bindDrawable(Drawable drawable) {
+            mImageView.setImageDrawable(drawable);
+        }
+
     }
 
     private class PhotoAdapter extends RecyclerView.Adapter<PhotoHolder> {
@@ -186,7 +190,7 @@ public class PhotoGalleryFragment extends Fragment {
         @Override
         public void onBindViewHolder(PhotoHolder holder, int position) {
             holder.bindItem(mPhotoItem.get(position));
-   //         holder.bindDrawable(getResources().getDrawable(R.drawable.ic_action_wait));
+  //          holder.bindDrawable(getResources().getDrawable(R.drawable.ic_action_wait));
   //          mThumbnailDownloader.queueThumbnail(holder, mPhotoItem.get(position).getImgUrl());
         }
 

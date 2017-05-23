@@ -137,7 +137,8 @@ public class ThumbnailDownloader<T> extends HandlerThread {
                         Log.i(TAG, "return handlerRequest: bitmap create " + target.toString());
                         return;
                     }
-                    mThumbnailDownloadListener.onThumbnailDownloaded(target, bitmap);
+                        mThumbnailDownloadListener.onThumbnailDownloaded(target, bitmap);
+
                 }
             });
         } catch (IOException e) {
