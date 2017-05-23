@@ -1,5 +1,6 @@
 package com.bignerdranch.android.photogallery;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
@@ -7,12 +8,17 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -44,11 +50,51 @@ public class PhotoGalleryFragment extends Fragment {
     }
 
     @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.fragment_photo_tool_bar, menu);
+
+        MenuItem searchItem = menu.findItem(R.id.menu_item_search);
+        SearchView searchView = (SearchView) searchItem.getActionView();
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                Log.d(TAG, "onQueryTextSubmit: " + query);
+                QueryPreference.setPreference(getActivity(), query);
+                updateItem();
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                return false;
+            }
+        });
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menu_item_clear:
+                QueryPreference.setPreference(getActivity(), null);
+                updateItem();
+                return true;
+
+            default:return super.onOptionsItemSelected(item);
+        }
+    }
+
+    private void updateItem() {
+        new FetcherItemTask(QueryPreference.getPreference(getActivity())).execute();
+    }
+
+    @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
         mPhotoItemList = new ArrayList<>();
         setRetainInstance(true);
-        mTask = new FetcherItemTask();
+        mTask = new FetcherItemTask(QueryPreference.getPreference(getActivity()));
         mTask.execute();
        /* mThumbnailDownloader = new ThumbnailDownloader<>();
         mThumbnailDownloader.setThumbnailDownloadListener(new ThumbnailDownloader.ThumbnailDownloadListener<PhotoHolder>() {
@@ -88,6 +134,8 @@ public class PhotoGalleryFragment extends Fragment {
         Log.i(TAG, "onDestroy: thumbnail clear");
     }
 
+
+
     private void setAdapter() {
         if (isAdded()) {
             mPhotoRecyclerView.setAdapter(new PhotoAdapter(mPhotoItemList));
@@ -122,13 +170,17 @@ public class PhotoGalleryFragment extends Fragment {
         }
     }
 
-//It is intended for work that is short-lived and not repeated too often
-    public class FetcherItemTask extends AsyncTask<Void, Integer, List<PhotoItem>> implements PhotoFetcher.ListenPreset{
+    //It is intended for work that is short-lived and not repeated too often
+    public class FetcherItemTask extends AsyncTask<Void, Integer, List<PhotoItem>> implements PhotoFetcher.ListenPreset {
+        private String mQuery;
+
+        public FetcherItemTask(String query) {
+            mQuery = query;
+        }
 
         @Override
         protected List<PhotoItem> doInBackground(Void... params) {
-
-            return new PhotoFetcher(mTask).fetchItem();
+            return new PhotoFetcher(mTask).searchPhotos(mQuery);
         }
 
         @Override
@@ -176,6 +228,7 @@ public class PhotoGalleryFragment extends Fragment {
 
     private class PhotoAdapter extends RecyclerView.Adapter<PhotoHolder> {
         private List<PhotoItem> mPhotoItem;
+
         public PhotoAdapter(List<PhotoItem> list) {
             mPhotoItem = list;
         }
@@ -190,8 +243,8 @@ public class PhotoGalleryFragment extends Fragment {
         @Override
         public void onBindViewHolder(PhotoHolder holder, int position) {
             holder.bindItem(mPhotoItem.get(position));
-  //          holder.bindDrawable(getResources().getDrawable(R.drawable.ic_action_wait));
-  //          mThumbnailDownloader.queueThumbnail(holder, mPhotoItem.get(position).getImgUrl());
+            //          holder.bindDrawable(getResources().getDrawable(R.drawable.ic_action_wait));
+            //          mThumbnailDownloader.queueThumbnail(holder, mPhotoItem.get(position).getImgUrl());
         }
 
         @Override

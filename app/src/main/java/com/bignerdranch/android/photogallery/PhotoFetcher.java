@@ -36,6 +36,17 @@ import okio.BufferedSink;
 public class PhotoFetcher {
     private static final String TAG = "PhotoFetcher";
 
+    private static final String SEARCH_METHOD = "q";
+    private static final String TOP_250 = "top";
+
+    private static final Uri URL_TOP_250 = Uri.parse("https://api.douban.com//v2/movie/top250")
+            .buildUpon()
+            .appendQueryParameter("start", "0")     //没这字段会无视
+            .appendQueryParameter("count", "250")
+            .build();
+
+    private static final Uri URL_SEARCH_ENDPOINT = Uri.parse("https://api.douban.com//v2/movie/search");
+
     private ListenPreset mListenPreset;
 
     public PhotoFetcher() {
@@ -101,14 +112,29 @@ public class PhotoFetcher {
         return new String(getUrlBytes(urlSpec));
     }
 
-    public List<PhotoItem> fetchItem() {
+    private String builderURL(String method, String query) {
+        if (query != null && method.equals(SEARCH_METHOD)) {
+            Uri.Builder builder = URL_SEARCH_ENDPOINT.buildUpon()
+                    .appendQueryParameter(method, query);
+            return builder.build().toString();
+        }
+
+        return URL_TOP_250.toString();
+    }
+
+    public List<PhotoItem> searchPhotos(String query) {
+        String url = builderURL(SEARCH_METHOD, query);
+        return fetchItem(url);
+    }
+
+    public List<PhotoItem> top205Photos() {
+        String url = builderURL(TOP_250, null);
+        return fetchItem(url);
+    }
+
+    public List<PhotoItem> fetchItem(String url) {
         List<PhotoItem> items = new ArrayList<>();
-        String url = Uri.parse("https://api.douban.com//v2/movie/top250")
-                .buildUpon()
-                .appendQueryParameter("start", "0")     //没这字段会无视
-                .appendQueryParameter("count", "250")
-                .build()
-                .toString();
+
         try {
             String json = getUrlString(url);
             parseItems(items, json);
