@@ -55,6 +55,7 @@ public class PhotoFetcher {
 
     public PhotoFetcher(PhotoGalleryFragment.FetcherItemTask task) {
         mListenPreset = task;
+        mListenPreset.setPreset(0);
     }
 
     public interface ListenPreset{
@@ -163,7 +164,9 @@ public class PhotoFetcher {
             item.setTitle(itemObject.getString("title"));
 
             list.add(i, item);
-            mListenPreset.setPreset(i * 100 / length);
+            if (mListenPreset != null) {
+                mListenPreset.setPreset(i * 100 / length);
+            }
         }
     }
 

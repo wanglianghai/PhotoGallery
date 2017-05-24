@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.util.Log;
 
+import java.util.List;
+
 /**
  * Created by Administrator on 2017/5/24/024.
  */
@@ -25,7 +27,24 @@ public class PollService extends IntentService {
         if (!isNetWorkAvailableAndConnection()) {
             return;
         }
+
         Log.i(TAG, "onHandleIntent: receive a intent" + intent);
+        String query = QueryPreference.getPreference(this);
+        String lastResultId = QueryPreference.getLastResultID(this);
+        List<PhotoItem> item;
+
+        if (query == null) {
+            item = new PhotoFetcher().top205Photos();
+        } else {
+            item = new PhotoFetcher().searchPhotos(query);
+        }
+
+        String lastId = item.get(0).getId();
+        if (lastId.equals(lastResultId)) {
+            Log.i(TAG, "onHandleIntent: old result");
+        } else {
+            Log.i(TAG, "onHandleIntent: new result");
+        }
     }
 
     private boolean isNetWorkAvailableAndConnection() {
