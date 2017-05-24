@@ -57,6 +57,13 @@ public class PhotoGalleryFragment extends Fragment {
         super.onCreateOptionsMenu(menu, inflater);
         inflater.inflate(R.menu.fragment_photo_tool_bar, menu);
 
+        MenuItem toggleItem = menu.findItem(R.id.menu_item_toggle_polling);
+        if (PollService.isServiceAlarmOn(getActivity())) {
+            toggleItem.setTitle(R.string.start_polling);
+        } else {
+            toggleItem.setTitle(R.string.start_polling);
+        }
+
         MenuItem searchItem = menu.findItem(R.id.menu_item_search);
         mSearchView = (SearchView) searchItem.getActionView();
         mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
@@ -83,6 +90,14 @@ public class PhotoGalleryFragment extends Fragment {
                 mSearchView.setQuery("", false);
                 QueryPreference.setPreference(getActivity(), null);
                 updateItem();
+                return true;
+
+            case R.id.menu_item_toggle_polling:
+                //就两种情况的选择
+                boolean shouldStartAlarm = !PollService.isServiceAlarmOn(getActivity());
+                PollService.setServiceAlarm(getActivity(), shouldStartAlarm);
+
+                getActivity().invalidateOptionsMenu();
                 return true;
 
             default:return super.onOptionsItemSelected(item);
@@ -113,7 +128,6 @@ public class PhotoGalleryFragment extends Fragment {
         });
         mThumbnailDownloader.start();
         mThumbnailDownloader.getLooper();*/
-        PollService.setServiceAlarm(getActivity(), true);
     }
 
     @Nullable
