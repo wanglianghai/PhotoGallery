@@ -1,6 +1,7 @@
 package com.bignerdranch.android.photogallery;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
@@ -112,7 +113,8 @@ public class PhotoGalleryFragment extends Fragment {
         });
         mThumbnailDownloader.start();
         mThumbnailDownloader.getLooper();*/
-        Log.i(TAG, "onCreate: thumbnail start");
+        Intent i = PollService.newIntent(getActivity());
+        getActivity().startService(i);
     }
 
     @Nullable
