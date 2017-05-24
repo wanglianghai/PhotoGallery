@@ -1,23 +1,52 @@
 package com.bignerdranch.android.photogallery;
 
+import android.app.AlarmManager;
 import android.app.IntentService;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
+import android.os.SystemClock;
 import android.util.Log;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import static android.app.PendingIntent.FLAG_NO_CREATE;
 
 /**
  * Created by Administrator on 2017/5/24/024.
  */
-
+//单例全用静态方法
 public class PollService extends IntentService {
+    private static final long POLL_INTERVAL_MS = TimeUnit.MINUTES.toMinutes(1);
     private static final String TAG = "PollService";
 
     public static Intent newIntent(Context context) {
         return new Intent(context, PollService.class);
     }
+
+    public static void setServiceAlarm(Context context, boolean isOn) {
+        Intent i = newIntent(context);
+        PendingIntent pi = PendingIntent.getService(context, 0, i, 0);
+        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+
+        if (isOn) {
+            alarmManager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME,
+                    SystemClock.elapsedRealtime(), POLL_INTERVAL_MS, pi);
+        } else {
+            alarmManager.cancel(pi);
+            pi.cancel();
+        }
+    }
+
+    public static boolean isServiceAlarmOn(Context context) {
+        Intent i = newIntent(context);
+        PendingIntent pi = PendingIntent.getService(context, 0, i, FLAG_NO_CREATE);
+
+        return pi != null;
+    }
+
     public PollService() {
         super(TAG);
     }
@@ -44,6 +73,7 @@ public class PollService extends IntentService {
             Log.i(TAG, "onHandleIntent: old result");
         } else {
             Log.i(TAG, "onHandleIntent: new result");
+            QueryPreference.setLastResultID(this, lastId);   //this 代表自己这个类,在内部类里不行
         }
     }
 

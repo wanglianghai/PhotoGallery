@@ -113,8 +113,7 @@ public class PhotoGalleryFragment extends Fragment {
         });
         mThumbnailDownloader.start();
         mThumbnailDownloader.getLooper();*/
-        Intent i = PollService.newIntent(getActivity());
-        getActivity().startService(i);
+        PollService.setServiceAlarm(getActivity(), true);
     }
 
     @Nullable
