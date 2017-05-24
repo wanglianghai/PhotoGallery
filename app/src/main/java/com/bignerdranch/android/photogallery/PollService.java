@@ -2,11 +2,15 @@ package com.bignerdranch.android.photogallery;
 
 import android.app.AlarmManager;
 import android.app.IntentService;
+import android.app.Notification;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.net.ConnectivityManager;
 import android.os.SystemClock;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationManagerCompat;
 import android.util.Log;
 
 import java.util.List;
@@ -69,12 +73,35 @@ public class PollService extends IntentService {
         }
 
         String lastId = item.get(0).getId();
+        Resources resources = getResources();
+        String textNotification;
         if (lastId.equals(lastResultId)) {
             Log.i(TAG, "onHandleIntent: old result");
+            textNotification = resources.getString(R.string.old_pictures_title);
         } else {
             Log.i(TAG, "onHandleIntent: new result");
+            textNotification = resources.getString(R.string.new_pictures_title);
             QueryPreference.setLastResultID(this, lastId);   //this 代表自己这个类,在内部类里不行
         }
+
+        notification(textNotification);
+    }
+
+    private void notification(String text) {
+        Intent i = PhotoGalleryActivity.newIntent(this);
+        PendingIntent pi = PendingIntent.getActivity(this, 0, i, 0);
+
+        Notification notification = new NotificationCompat.Builder(this)
+                .setTicker(text)
+                .setSmallIcon(android.R.drawable.ic_menu_report_image)
+                .setContentTitle(text)
+                .setContentText(text)
+                .setContentIntent(pi)
+                .setAutoCancel(true)
+                .build();
+
+        NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(this);
+        notificationManagerCompat.notify(0, notification);
     }
 
     private boolean isNetWorkAvailableAndConnection() {

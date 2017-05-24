@@ -61,7 +61,7 @@ public class PhotoGalleryFragment extends Fragment {
         if (PollService.isServiceAlarmOn(getActivity())) {
             toggleItem.setTitle(R.string.start_polling);
         } else {
-            toggleItem.setTitle(R.string.start_polling);
+            toggleItem.setTitle(R.string.stop_polling);
         }
 
         MenuItem searchItem = menu.findItem(R.id.menu_item_search);

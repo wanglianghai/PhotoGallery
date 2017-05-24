@@ -4,4 +4,6 @@
     <string name="clear">clear</string>
     <string name="start_polling">start polling</string>
     <string name="stop_polling">stop polling</string>
+    <string name="new_pictures_title">new picture</string>
+    <string name="old_pictures_title">picture no change</string>
 </resources>
