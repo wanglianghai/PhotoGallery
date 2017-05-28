@@ -46,7 +46,6 @@ public class PhotoGalleryFragment extends Fragment {
 
     private List<PhotoItem> mPhotoItemList;
     private FetcherItemTask mTask;
-    private ThumbnailDownloader<PhotoHolder> mThumbnailDownloader;
 
     public static PhotoGalleryFragment newInstance() {
         return new PhotoGalleryFragment();
@@ -229,24 +228,31 @@ public class PhotoGalleryFragment extends Fragment {
     private class PhotoHolder extends RecyclerView.ViewHolder {
         private TextView mTextView;
         private ImageView mImageView;
+        private PhotoItem mItem;
 
-        public PhotoHolder(View itemView) {
+        public PhotoHolder(final View itemView) {
             super(itemView);
 
             mTextView = (TextView) itemView.findViewById(R.id.list_item_text);
             mImageView = (ImageView) itemView.findViewById(R.id.list_item_img);
+
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent i = PagePhotoActivity.newIntent(getActivity(), mItem.getAlt());
+                    startActivity(i);
+                }
+            });
         }
 
         public void bindItem(PhotoItem item) {
+            mItem = item;
             Picasso.with(getActivity()).
                     load(item.getImgUrl()).
                     placeholder(R.drawable.ic_action_wait).
                     into(mImageView);
             mTextView.setText(item.getTitle());
-        }
 
-        public void bindDrawable(Drawable drawable) {
-            mImageView.setImageDrawable(drawable);
         }
 
     }

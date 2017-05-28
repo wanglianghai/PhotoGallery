@@ -1,5 +1,7 @@
 package com.bignerdranch.android.photogallery;
 
+import android.net.Uri;
+
 /**
  * Created by Administrator on 2017/5/19/019.
  */
@@ -8,14 +10,15 @@ public class PhotoItem {
     private String mId;
     private String mTitle;
     private String mImgUrl;
-    private int mPosition;
+    private Uri mAlt;
 
-    public int getPosition() {
-        return mPosition;
+    public Uri getAlt() {
+        return mAlt;
     }
 
-    public void setPosition(int position) {
-        mPosition = position;
+    public void setAlt(String alt) {
+        Uri uri = Uri.parse(alt);
+        mAlt = uri;
     }
 
     public String getId() {

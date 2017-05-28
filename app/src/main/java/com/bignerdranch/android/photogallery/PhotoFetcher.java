@@ -78,7 +78,7 @@ public class PhotoFetcher {
             while ((byteReader = in.read(buffer)) > 0) {
                 out.write(buffer, 0, byteReader);
             }
-
+            out.close();
             return out.toByteArray();
         } finally {
             connection.disconnect();
@@ -162,6 +162,7 @@ public class PhotoFetcher {
             item.setId(itemObject.getString("id"));
             item.setImgUrl(itemObject.getJSONObject("images").getString("medium"));
             item.setTitle(itemObject.getString("title"));
+            item.setAlt(itemObject.getString("alt"));
 
             list.add(i, item);
             if (mListenPreset != null) {

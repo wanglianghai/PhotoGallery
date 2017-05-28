@@ -29,11 +29,9 @@ public class PollJob extends Job {
 
     public static void scheduleJob() {
         new JobRequest.Builder(PollJob.TAG)
-                .setExecutionWindow(1_000L, 2_000L)
+                .setPeriodic(TimeUnit.MINUTES.toMillis(15), TimeUnit.MINUTES.toMillis(5))
                 .setRequiredNetworkType(JobRequest.NetworkType.CONNECTED)
                 .setRequirementsEnforced(true)
-                .setPeriodic(TimeUnit.MINUTES.toMillis(15), TimeUnit.MINUTES.toMillis(5))
-                .setPersisted(true)
                 .build()
                 .schedule();
     }
