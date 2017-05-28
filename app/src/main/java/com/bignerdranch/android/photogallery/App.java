@@ -12,8 +12,8 @@ public class App extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        JobManager.create(this).addJobCreator(new PollJobCreator());
+      //  JobManager.create(this).addJobCreator(new PollJobCreator());
 
-        PollJob.scheduleJob();
+     //   PollJob.scheduleJob();
     }
 }
