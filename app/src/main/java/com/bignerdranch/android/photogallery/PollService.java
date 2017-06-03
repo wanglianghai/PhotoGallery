@@ -23,7 +23,7 @@ import static android.app.PendingIntent.FLAG_NO_CREATE;
  */
 //单例全用静态方法
 public class PollService extends IntentService {
-    private static final long POLL_INTERVAL_MS = TimeUnit.MINUTES.toMinutes(15);
+    private static final long POLL_INTERVAL_MS = TimeUnit.MINUTES.toMinutes(1);
     private static final String TAG = "PollService";
 
     public static Intent newIntent(Context context) {
@@ -42,6 +42,8 @@ public class PollService extends IntentService {
             alarmManager.cancel(pi);
             pi.cancel();
         }
+
+        QueryPreference.setAlarmOn(context, isOn);
     }
 
     public static boolean isServiceAlarmOn(Context context) {
