@@ -26,6 +26,7 @@ public class PollService extends IntentService {
     private static final long POLL_INTERVAL_MS = TimeUnit.MINUTES.toMinutes(1);
     public static final String ACTION_SHOW_NOTIFICATION = "com.bignerdranch.android.photoGallery.SHOW_NOTIFICATION";
     private static final String TAG = "PollService";
+    public static final String PERM_PRIVATE = "com.bignerdranch.android.photoGallery.PRIVATE";
 
     public static Intent newIntent(Context context) {
         return new Intent(context, PollService.class);
@@ -89,7 +90,7 @@ public class PollService extends IntentService {
 
         notification(textNotification);
 
-        sendBroadcast(new Intent(ACTION_SHOW_NOTIFICATION));
+        sendBroadcast(new Intent(ACTION_SHOW_NOTIFICATION), PERM_PRIVATE);
     }
 
     private void notification(String text) {
