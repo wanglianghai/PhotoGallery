@@ -24,7 +24,7 @@ import static android.app.PendingIntent.FLAG_NO_CREATE;
 //单例全用静态方法
 public class PollService extends IntentService {
     private static final long POLL_INTERVAL_MS = TimeUnit.MINUTES.toMinutes(1);
-    private static final String ACTION_SHOW_NOTIFICATION = "com.bignerdranch.android.photoGallery.SHOW_NOTIFICATION";
+    public static final String ACTION_SHOW_NOTIFICATION = "com.bignerdranch.android.photoGallery.SHOW_NOTIFICATION";
     private static final String TAG = "PollService";
 
     public static Intent newIntent(Context context) {
