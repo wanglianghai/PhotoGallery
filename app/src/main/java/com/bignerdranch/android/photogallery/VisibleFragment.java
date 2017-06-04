@@ -1,10 +1,12 @@
 package com.bignerdranch.android.photogallery;
 
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.widget.Toast;
 
 /**
@@ -33,6 +35,9 @@ public class VisibleFragment extends Fragment {
             Toast.makeText(getActivity(),
                     "Got a broadcast:" + intent.getAction(),
                     Toast.LENGTH_SHORT).show();
+
+            Log.i(TAG, "onReceive: canceling notification");
+            setResultCode(Activity.RESULT_CANCELED);
         }
     };
 }
